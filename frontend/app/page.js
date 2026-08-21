@@ -1,0 +1,17 @@
+export default function HomePage() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-slate-950 text-white">
+      <div className="max-w-2xl text-center space-y-4">
+        <h1 className="text-4xl font-bold tracking-tight text-blue-500">
+          RecoverAI — AI Revenue Recovery Agent
+        </h1>
+        <p className="text-slate-400 text-lg">
+          Detect revenue at risk. Diagnose payment failures. Execute bounded interventions. Measure recovered capital.
+        </p>
+        <div className="inline-flex items-center px-4 py-2 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          System Initialized — Ready for Phase 4 Implementation
+        </div>
+      </div>
+    </main>
+  );
+}
