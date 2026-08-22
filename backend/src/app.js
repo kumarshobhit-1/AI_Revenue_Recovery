@@ -14,6 +14,8 @@ app.use(cors({
 
 app.use(express.json());
 
+import eventRoutes from './routes/eventRoutes.js';
+
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -23,6 +25,10 @@ app.get('/api/health', (req, res) => {
     uptime: process.uptime()
   });
 });
+
+// API Routes
+app.use('/api/events', eventRoutes);
+
 
 // 404 Route Handler
 app.use((req, res) => {
