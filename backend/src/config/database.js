@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
 
-/**
- * Connect to MongoDB instance using Mongoose.
- * Supports graceful connection handling and configuration settings.
- */
+
+// Connect to MongoDB instance using Mongoose. Supports graceful connection handling and configuration settings.
+
 export const connectDB = async (uri) => {
   const connectionUri = uri || process.env.MONGODB_URI || 'mongodb://localhost:27017/recoverai';
 
@@ -19,9 +18,9 @@ export const connectDB = async (uri) => {
   }
 };
 
-/**
- * Gracefully disconnect from MongoDB instance.
- */
+
+// Gracefully disconnect from MongoDB instance.
+
 export const disconnectDB = async () => {
   try {
     await mongoose.disconnect();
