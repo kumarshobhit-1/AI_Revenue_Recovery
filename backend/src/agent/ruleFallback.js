@@ -1,9 +1,6 @@
 import { validateAIDiagnosis } from './schemas/diagnosisSchema.js';
 
-/**
- * Rule-Based Diagnostic Fallback Engine.
- * Provides deterministic baseline root-cause analysis when LLM APIs are offline or return invalid JSON.
- */
+// Rule-Based Diagnostic Fallback Engine. Provides deterministic baseline root-cause analysis when LLM APIs are offline or return invalid JSON.
 export const getRuleBasedDiagnosis = (context) => {
   const failureReason = (context.failureReason || 'GENERIC_FAILURE').toUpperCase();
   const amount = Number(context.amount) || 0;

@@ -1,9 +1,7 @@
 import { validateAIDiagnosis } from './schemas/diagnosisSchema.js';
 import { getRuleBasedDiagnosis } from './ruleFallback.js';
 
-/**
- * Builds system & user prompt for AI Failure Diagnosis.
- */
+//  Builds system & user prompt for AI Failure Diagnosis.
 export const buildDiagnosticPrompt = (context) => {
   return `You are RecoverAI, an expert financial AI Agent specializing in payment failure diagnosis and revenue recovery.
 Analyze the following structured payment failure event context:
@@ -34,9 +32,7 @@ DO NOT include markdown block wrappers or extra conversational text outside the 
 };
 
 export const aiProvider = {
-  /**
-   * Main entry point for AI Failure Diagnosis.
-   */
+  // Main entry point for AI Failure Diagnosis.
   async diagnose(context) {
     const provider = (process.env.AI_PROVIDER || 'mock').toLowerCase();
 
@@ -59,16 +55,12 @@ export const aiProvider = {
     }
   },
 
-  /**
-   * Mock AI Diagnostic Engine (Deterministic & Fast for local dev/testing)
-   */
+  //  Mock AI Diagnostic Engine (Deterministic & Fast for local dev/testing)
   diagnoseMock(context) {
     return getRuleBasedDiagnosis(context);
   },
 
-  /**
-   * Google Gemini API Integration
-   */
+  // Google Gemini API Integration 
   async diagnoseGemini(context) {
     const apiKey = process.env.AI_API_KEY;
     const modelName = process.env.AI_MODEL || 'gemini-1.5-flash';
@@ -101,9 +93,7 @@ export const aiProvider = {
     return validateAIDiagnosis(parsedJson);
   },
 
-  /**
-   * OpenRouter API Integration
-   */
+  // OpenRouter API Integration
   async diagnoseOpenRouter(context) {
     const apiKey = process.env.AI_API_KEY;
     const modelName = process.env.AI_MODEL || 'google/gemini-flash-1.5';
@@ -138,9 +128,7 @@ export const aiProvider = {
     return validateAIDiagnosis(parsedJson);
   },
 
-  /**
-   * OpenAI API Integration
-   */
+  //OpenAI API Integration
   async diagnoseOpenAI(context) {
     const apiKey = process.env.AI_API_KEY;
     const modelName = process.env.AI_MODEL || 'gpt-4o-mini';

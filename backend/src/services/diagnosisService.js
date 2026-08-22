@@ -3,10 +3,7 @@ import { aiProvider } from '../agent/aiProvider.js';
 import { validateTransition } from '../engine/stateMachine.js';
 
 export const diagnosisService = {
-  /**
-   * Diagnoses an ELIGIBLE recovery case using the AI Diagnostic Agent.
-   * Advances state from ELIGIBLE -> ACTION_PLANNED and stores AIDecision.
-   */
+  // Diagnoses an ELIGIBLE recovery case using the AI Diagnostic Agent. Advances state from ELIGIBLE -> ACTION_PLANNED and stores AIDecision.
   async diagnoseCase(caseId) {
     const recoveryCase = await dbService.getRecoveryCaseById(caseId);
     if (!recoveryCase) {

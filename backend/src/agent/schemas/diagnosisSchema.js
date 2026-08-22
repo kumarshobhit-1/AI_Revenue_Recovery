@@ -19,9 +19,7 @@ export const AIDiagnosisSchema = z.object({
   rationale: z.array(z.string()).min(1, 'At least one rationale bullet point is required'),
 });
 
-/**
- * Validates raw JSON object against AIDiagnosisSchema. Throws ZodError if invalid.
- */
+// Validates raw JSON object against AIDiagnosisSchema. Throws ZodError if invalid.
 export const validateAIDiagnosis = (rawJson) => {
   return AIDiagnosisSchema.parse(rawJson);
 };
