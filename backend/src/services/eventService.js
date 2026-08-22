@@ -1,6 +1,8 @@
 import { dbService } from './dbService.js';
 import { riskService } from './riskService.js';
+import { diagnosisService } from './diagnosisService.js';
 import { validateTransition } from '../engine/stateMachine.js';
+
 
 
 // Normalizes inbound payment failure payloads from Razorpay or generic gateways.
@@ -121,6 +123,12 @@ export const eventService = {
     // 6. Run Revenue-at-Risk & Recovery Eligibility Engine (ANALYZING -> ELIGIBLE)
     const riskResult = await riskService.evaluateCaseRisk(caseId);
 
+    // 7. If eligible, trigger AI Failure Diagnosis (ELIGIBLE -> ACTION_PLANNED)
+    let diagnosisResult = null;
+    if (riskResult.isEligible) {
+      diagnosisResult = await diagnosisService.diagnoseCase(caseId);
+    }
+
     const finalCase = await dbService.getRecoveryCaseById(caseId);
 
     return {
@@ -129,6 +137,7 @@ export const eventService = {
       customer,
       merchant,
       riskResult,
+      diagnosisResult,
     };
   },
 };
