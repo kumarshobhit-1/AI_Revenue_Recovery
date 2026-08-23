@@ -31,6 +31,13 @@ export const resolveOutcomeSchema = z.object({
   }).optional(),
 });
 
+export const fastForwardSchema = z.object({
+  body: z.object({
+    caseId: z.string().optional(),
+    targetMinutes: z.number().positive().optional().default(360),
+  }).optional(),
+});
+
 export const simulateEventSchema = z.object({
   body: z.object({
     paymentId: z.string().optional(),

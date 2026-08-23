@@ -1,7 +1,10 @@
 import { eventService } from '../services/eventService.js';
 import { dbService } from '../services/dbService.js';
 import { outcomeService } from '../services/outcomeService.js';
+import { fastForwardTime } from '../jobs/timeTravel.js';
+import { getPendingMemoryJobs } from '../jobs/queue.js';
 import { RecoveryCase } from '../models/RecoveryCase.js';
+
 
 
 export const handleWebhook = async (req, res, next) => {
@@ -146,4 +149,35 @@ export const getMetrics = async (req, res, next) => {
     next(error);
   }
 };
+
+export const handleFastForward = async (req, res, next) => {
+  try {
+    const { caseId, targetMinutes = 360 } = req.body || {};
+    const result = await fastForwardTime({ caseId, targetMinutes });
+
+    res.status(200).json({
+      success: true,
+      message: `Time-travel fast-forward completed. ${result.jobsExecutedCount} retry jobs executed.`,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const listPendingJobs = async (req, res, next) => {
+  try {
+    const jobs = getPendingMemoryJobs();
+    res.status(200).json({
+      success: true,
+      data: {
+        jobs,
+        total: jobs.length,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
