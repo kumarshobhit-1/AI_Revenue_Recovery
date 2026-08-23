@@ -15,6 +15,22 @@ export const listCasesSchema = z.object({
   }),
 });
 
+export const getMetricsSchema = z.object({
+  query: z.object({
+    merchantId: z.string().optional(),
+  }).optional(),
+});
+
+export const resolveOutcomeSchema = z.object({
+  params: z.object({
+    caseId: z.string().min(1, 'caseId parameter is required'),
+  }),
+  body: z.object({
+    outcome: z.enum(['SUCCESS', 'FAILURE', 'success', 'failure']).optional().default('SUCCESS'),
+    notes: z.string().optional().default(''),
+  }).optional(),
+});
+
 export const simulateEventSchema = z.object({
   body: z.object({
     paymentId: z.string().optional(),

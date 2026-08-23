@@ -1,6 +1,8 @@
 import { eventService } from '../services/eventService.js';
 import { dbService } from '../services/dbService.js';
+import { outcomeService } from '../services/outcomeService.js';
 import { RecoveryCase } from '../models/RecoveryCase.js';
+
 
 export const handleWebhook = async (req, res, next) => {
   try {
@@ -27,9 +29,9 @@ export const handleSimulate = async (req, res, next) => {
       paymentId: req.body.paymentId || `pay_sim_${Date.now()}`,
       merchantId: req.body.merchantId || 'mer_default',
       customerId: req.body.customerId || `cust_sim_${Date.now()}`,
-      customerName: req.body.customerName || 'Aarav Sharma',
-      customerEmail: req.body.customerEmail || 'aarav.sharma@example.com',
-      customerPhone: req.body.customerPhone || '+919876543210',
+      customerName: req.body.customerName || 'shobhit kumar',
+      customerEmail: req.body.customerEmail || 'shobhitkumar1437@gmail.com',
+      customerPhone: req.body.customerPhone || '+917237810232',
       customerLtv: req.body.customerLtv || 42000,
       customerSuccessfulTxns: req.body.customerSuccessfulTxns || 12,
       amount: req.body.amount || 4999,
@@ -113,3 +115,35 @@ export const getCaseDetails = async (req, res, next) => {
     next(error);
   }
 };
+
+export const resolveCaseOutcome = async (req, res, next) => {
+  try {
+    const { caseId } = req.params;
+    const { outcome = 'SUCCESS', notes = '' } = req.body;
+
+    const result = await outcomeService.resolveOutcome(caseId, outcome, notes);
+
+    res.status(200).json({
+      success: true,
+      message: `Case ${caseId} outcome resolved to ${result.outcome}`,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMetrics = async (req, res, next) => {
+  try {
+    const merchantId = req.query.merchantId || 'mer_default';
+    const metrics = await outcomeService.getBatchRecoveryMetrics(merchantId);
+
+    res.status(200).json({
+      success: true,
+      data: metrics,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
