@@ -18,6 +18,7 @@ import {
   getMetrics,
   handleFastForward,
   listPendingJobs,
+  handleBenchmark,
 } from '../controllers/eventController.js';
 
 const router = express.Router();
@@ -29,6 +30,7 @@ router.post('/webhook', checkIdempotency, handleWebhook);
 router.post('/simulate', validateRequest(simulateEventSchema), checkIdempotency, handleSimulate);
 router.post('/simulator/fast-forward', validateRequest(fastForwardSchema), handleFastForward);
 router.get('/simulator/jobs', listPendingJobs);
+router.post('/simulator/benchmark', handleBenchmark);
 
 // Financial Metrics Endpoint
 router.get('/metrics', validateRequest(getMetricsSchema), getMetrics);

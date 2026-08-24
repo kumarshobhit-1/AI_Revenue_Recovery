@@ -101,4 +101,11 @@ export const api = {
   async getPendingJobs() {
     return fetchAPI('/events/simulator/jobs');
   },
+
+  async runBenchmark(batchSize = 25) {
+    return fetchAPI('/events/simulator/benchmark', {
+      method: 'POST',
+      body: JSON.stringify({ batchSize }),
+    });
+  },
 };

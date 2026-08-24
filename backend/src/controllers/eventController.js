@@ -4,6 +4,7 @@ import { outcomeService } from '../services/outcomeService.js';
 import { fastForwardTime } from '../jobs/timeTravel.js';
 import { getPendingMemoryJobs } from '../jobs/queue.js';
 import { RecoveryCase } from '../models/RecoveryCase.js';
+import { benchmarkEngine } from '../engine/benchmarkEngine.js';
 
 export const handleWebhook = async (req, res, next) => {
   try {
@@ -221,6 +222,23 @@ export const listPendingJobs = async (req, res, next) => {
         jobs,
         total: jobs.length,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const handleBenchmark = async (req, res, next) => {
+  try {
+    const batchSize = Number(req.body?.batchSize) || 20;
+    const merchantId = req.body?.merchantId || 'mer_default';
+
+    const result = await benchmarkEngine.runBatchBenchmark(batchSize, merchantId);
+
+    res.status(200).json({
+      success: true,
+      message: `Batch synthetic benchmark evaluation completed for ${batchSize} cases.`,
+      data: result,
     });
   } catch (error) {
     next(error);

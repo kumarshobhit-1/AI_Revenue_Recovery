@@ -15,12 +15,16 @@ export const diagnosisService = {
       merchantId: recoveryCase.merchantId,
     });
 
+    const payment = await dbService.getPaymentById(recoveryCase.paymentId);
+
     const context = {
       caseId,
       paymentId: recoveryCase.paymentId,
       amount: recoveryCase.amount,
       currency: recoveryCase.currency,
-      failureReason: recoveryCase.failureCategory || 'INSUFFICIENT_FUNDS',
+      failureReason: recoveryCase.failureCategory || payment?.failureReason || 'INSUFFICIENT_FUNDS',
+      gatewayErrorCode: payment?.errorCode || recoveryCase.failureCategory,
+      paymentMethod: payment?.paymentMethod || 'CARD',
       previousAttempts: recoveryCase.retryCount || 0,
       customer: {
         ltv: customer.ltv,

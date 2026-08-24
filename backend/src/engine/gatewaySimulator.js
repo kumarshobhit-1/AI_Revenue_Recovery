@@ -20,6 +20,11 @@ export const GATEWAY_DECLINE_CODES = {
       responseCode: '504_GATEWAY_TIMEOUT',
       reason: 'Issuing bank gateway failed to respond within timeout window',
     },
+    CHECKOUT_ABANDONED_SESSION: {
+      code: 'CHECKOUT_ABANDONED_SESSION',
+      responseCode: '400_BAD_REQUEST',
+      reason: 'Customer initiated checkout session but abandoned before payment completion',
+    },
   },
   UPI: {
     UPI_TIMEOUT: {
@@ -37,6 +42,11 @@ export const GATEWAY_DECLINE_CODES = {
       responseCode: '401_UNAUTHORIZED',
       reason: 'UPI MPIN authentication failed',
     },
+    PROMISE_TO_PAY_PENDING: {
+      code: 'PROMISE_TO_PAY_PENDING',
+      responseCode: '202_ACCEPTED',
+      reason: 'Customer submitted Promise-to-Pay date commitment',
+    },
   },
   NETBANKING: {
     BANK_TIMEOUT: {
@@ -49,6 +59,11 @@ export const GATEWAY_DECLINE_CODES = {
       responseCode: '503_SERVICE_UNAVAILABLE',
       reason: 'Core banking portal is undergoing scheduled maintenance',
     },
+    OVERDUE_INVOICE_30D: {
+      code: 'OVERDUE_INVOICE_30D',
+      responseCode: '402_PAYMENT_REQUIRED',
+      reason: 'B2B receivable invoice is 30 days overdue',
+    },
   },
   MANDATE: {
     MANDATE_REJECTED: {
@@ -60,6 +75,11 @@ export const GATEWAY_DECLINE_CODES = {
       code: 'AUTHORIZATION_FAILED',
       responseCode: '403_FORBIDDEN',
       reason: 'Auto-debit mandate authorization revoked by customer',
+    },
+    RECURRING_MANDATE_DECLINED: {
+      code: 'RECURRING_MANDATE_DECLINED',
+      responseCode: '402_PAYMENT_REQUIRED',
+      reason: 'Recurring subscription mandate auto-debit declined',
     },
   },
 };
@@ -77,7 +97,6 @@ export const gatewaySimulator = {
     const latencyMs = Math.floor(Math.random() * 250) + 120; // 120ms - 370ms latency
     const gatewayTxnId = `gtw_${method.toLowerCase()}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
 
-    // Check for deterministic test controls (optional overrides for automated tests)
     let isSuccess = false;
 
     if (transactionData.simulateResult === 'SUCCESS') {
@@ -85,7 +104,6 @@ export const gatewaySimulator = {
     } else if (transactionData.simulateResult === 'FAILED') {
       isSuccess = false;
     } else {
-      // Production / realistic simulation: 75% success rate, 25% failure
       isSuccess = Math.random() >= 0.25;
     }
 
@@ -109,16 +127,25 @@ export const gatewaySimulator = {
     }
 
     // Handle Failure Outcome
-    const methodDeclines = GATEWAY_DECLINE_CODES[method];
+    const methodDeclines = GATEWAY_DECLINE_CODES[method] || {};
     let declineInfo = null;
 
     if (transactionData.simulateErrorCode && methodDeclines[transactionData.simulateErrorCode]) {
       declineInfo = methodDeclines[transactionData.simulateErrorCode];
+    } else if (transactionData.simulateErrorCode) {
+      declineInfo = {
+        code: transactionData.simulateErrorCode,
+        responseCode: '400_BAD_REQUEST',
+        reason: transactionData.simulateErrorCode,
+      };
     } else {
-      // Select random decline code for the specified payment method
       const keys = Object.keys(methodDeclines);
       const randomKey = keys[Math.floor(Math.random() * keys.length)];
-      declineInfo = methodDeclines[randomKey];
+      declineInfo = methodDeclines[randomKey] || {
+        code: 'GATEWAY_DECLINED',
+        responseCode: '400_BAD_REQUEST',
+        reason: 'Payment declined by gateway',
+      };
     }
 
     return {
