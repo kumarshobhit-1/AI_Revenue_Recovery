@@ -14,7 +14,44 @@ export const getRuleBasedDiagnosis = (context) => {
   let confidenceScore = 0.85;
   const rationale = [];
 
-  if (failureReason === 'INSUFFICIENT_FUNDS') {
+  if (failureReason === 'CHECKOUT_ABANDONED_SESSION') {
+    classification = 'CHECKOUT_ABANDONMENT';
+    recommendedAction = 'GENERATE_RECOVERY_LINK';
+    suggestedChannel = 'EMAIL';
+    suggestedDelayMinutes = 30;
+    confidenceScore = 0.88;
+    rationale.push('Customer initiated checkout but abandoned session before completing payment.');
+    rationale.push('Sending automated recovery link with reservation timer.');
+  } else if (failureReason === 'RECURRING_MANDATE_DECLINED' || failureReason === 'SUBSCRIPTION_RENEWAL_FAIL') {
+    classification = 'SUBSCRIPTION_MANDATE_DECLINE';
+    recommendedAction = 'SCHEDULE_RETRY';
+    suggestedDelayMinutes = 720; // 12 hours
+    confidenceScore = 0.82;
+    rationale.push('Recurring subscription mandate auto-debit declined by issuing bank.');
+    rationale.push('Scheduling secondary mandate debit execution window.');
+  } else if (failureReason === 'OVERDUE_INVOICE_30D' || failureReason === 'UNPAID_INVOICE_60D') {
+    classification = 'OVERDUE_RECEIVABLE';
+    recommendedAction = 'SEND_NOTIFICATION';
+    suggestedChannel = 'WHATSAPP';
+    suggestedDelayMinutes = 0;
+    confidenceScore = 0.90;
+    rationale.push('B2B receivable invoice has passed payment due date.');
+    rationale.push('Dispatching automated WhatsApp reminder with direct payment portal link.');
+  } else if (failureReason === 'PAYMENT_DEGRADATION_WARNING') {
+    classification = 'GATEWAY_DEGRADATION';
+    recommendedAction = 'ESCALATE_TO_MERCHANT';
+    suggestedDelayMinutes = 0;
+    confidenceScore = 0.80;
+    rationale.push('Consecutive payment degradation detected on current gateway route.');
+    rationale.push('Escalating to merchant for payment routing inspection.');
+  } else if (failureReason === 'PROMISE_TO_PAY_PENDING') {
+    classification = 'PROMISE_TO_PAY_COMMITMENT';
+    recommendedAction = 'SCHEDULE_RETRY';
+    suggestedDelayMinutes = 1440; // 24 hours
+    confidenceScore = 0.95;
+    rationale.push('Customer submitted Promise-to-Pay (PTP) date commitment.');
+    rationale.push('Pausing aggressive retries until promised payment date.');
+  } else if (failureReason === 'INSUFFICIENT_FUNDS') {
     classification = 'TEMPORARY_LIQUIDITY_ISSUE';
     suggestedDelayMinutes = 360; // 6 hours
     rationale.push('Failure caused by temporary lack of account balance.');

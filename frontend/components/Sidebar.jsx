@@ -6,7 +6,7 @@ import {
   FlaskConical,
   ShieldCheck,
   Building2,
-  TrendingUp,
+  CreditCard,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -16,6 +16,7 @@ export default function Sidebar() {
     { label: 'Overview', href: '/', icon: LayoutDashboard },
     { label: 'Recovery Cases', href: '/cases', icon: Receipt },
     { label: 'Simulator Lab', href: '/simulator', icon: FlaskConical },
+    { label: 'Checkout (Merchant)', href: '/checkout', icon: CreditCard },
   ];
 
   return (

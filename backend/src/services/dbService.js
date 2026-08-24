@@ -257,6 +257,16 @@ export const dbService = {
     return decisionData;
   },
 
+  async getAIDecisionByCaseId(caseId) {
+    if (verifyPersistenceMode()) {
+      return await AIDecision.findOne({ caseId }).sort({ createdAt: -1 });
+    }
+    for (const d of memoryStore.aiDecisions.values()) {
+      if (d.caseId === caseId) return d;
+    }
+    return null;
+  },
+
   // Policy Result Operations
   async savePolicyResult(policyData) {
     if (verifyPersistenceMode()) {
@@ -264,6 +274,16 @@ export const dbService = {
     }
     memoryStore.policyResults.set(policyData.policyResultId, policyData);
     return policyData;
+  },
+
+  async getPolicyResultByCaseId(caseId) {
+    if (verifyPersistenceMode()) {
+      return await PolicyResult.findOne({ caseId }).sort({ createdAt: -1 });
+    }
+    for (const p of memoryStore.policyResults.values()) {
+      if (p.caseId === caseId) return p;
+    }
+    return null;
   },
 
   // Notification Operations

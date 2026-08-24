@@ -140,6 +140,9 @@ export const getCaseDetails = async (req, res, next) => {
       merchantId: rawCase.merchantId,
     });
 
+    const payment = await dbService.getPaymentById(rawCase.paymentId);
+    const aiDecision = await dbService.getAIDecisionByCaseId(caseId);
+    const policyResult = await dbService.getPolicyResultByCaseId(caseId);
     const auditLogs = await dbService.getAuditLogsByCaseId(caseId);
 
     res.status(200).json({
@@ -152,6 +155,9 @@ export const getCaseDetails = async (req, res, next) => {
           customerPhone: customer.phone || '',
           customerLtv: customer.ltv || 0,
         },
+        payment: payment ? (payment._doc || payment) : null,
+        aiDecision: aiDecision ? (aiDecision._doc || aiDecision) : null,
+        policyResult: policyResult ? (policyResult._doc || policyResult) : null,
         auditLogs,
       },
     });

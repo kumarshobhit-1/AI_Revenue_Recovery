@@ -7,8 +7,20 @@ dotenv.config();
 const app = express();
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  ...(process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : []),
+];
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS policy blocked for origin: ${origin}`));
+    }
+  },
   credentials: true
 }));
 
@@ -34,8 +46,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+import paymentRoutes from './routes/paymentRoutes.js';
+
 // API Routes
 app.use('/api/events', eventRoutes);
+app.use('/api/payments', paymentRoutes);
 
 
 // 404 Route Handler

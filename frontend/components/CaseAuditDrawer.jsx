@@ -15,6 +15,9 @@ import {
   CreditCard,
   Building2,
   Check,
+  Receipt,
+  FileText,
+  ShieldAlert,
 } from 'lucide-react';
 import { api } from '../lib/api';
 
@@ -22,7 +25,7 @@ export default function CaseAuditDrawer({ caseId, onClose, onRefresh }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('audit');
+  const [activeTab, setActiveTab] = useState('audit'); // 'audit' | 'summary' | 'ai' | 'policy'
   const [resolving, setResolving] = useState(false);
 
   useEffect(() => {
@@ -59,6 +62,9 @@ export default function CaseAuditDrawer({ caseId, onClose, onRefresh }) {
   if (!caseId) return null;
 
   const recoveryCase = data?.recoveryCase;
+  const payment = data?.payment;
+  const aiDecision = data?.aiDecision;
+  const policyResult = data?.policyResult;
   const auditLogs = data?.auditLogs || [];
 
   const getStateBadge = (state) => {
@@ -137,7 +143,18 @@ export default function CaseAuditDrawer({ caseId, onClose, onRefresh }) {
                 }`}
               >
                 <CreditCard className="w-3.5 h-3.5" />
-                <span>Context & Risk</span>
+                <span>Payment & Risk</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('ai')}
+                className={`py-3 px-4 text-xs font-bold border-b-2 flex items-center space-x-2 transition-colors ${
+                  activeTab === 'ai'
+                    ? 'border-purple-600 text-purple-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                <BrainCircuit className="w-3.5 h-3.5" />
+                <span>AI Diagnosis</span>
               </button>
             </div>
 
@@ -148,11 +165,9 @@ export default function CaseAuditDrawer({ caseId, onClose, onRefresh }) {
                   {auditLogs.map((log, idx) => {
                     const isAi = log.actor === 'AI_AGENT';
                     const isPolicy = log.actor === 'POLICY_ENGINE';
-                    const isSystem = log.actor === 'SYSTEM';
 
                     return (
                       <div key={log.auditId || idx} className="relative pl-6">
-                        {/* Timeline Node Icon */}
                         <div
                           className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 bg-white flex items-center justify-center ${
                             isAi
@@ -200,16 +215,6 @@ export default function CaseAuditDrawer({ caseId, onClose, onRefresh }) {
                               <span className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">{log.newState}</span>
                             </div>
                           )}
-
-                          {log.metadata?.verdict && (
-                            <div className="mt-2 text-xs bg-white p-2.5 rounded-lg border border-slate-200 space-y-1">
-                              <p className="font-bold text-slate-700">Policy Verdict Details:</p>
-                              <p className="text-slate-600 font-medium">Status: <span className="font-bold text-blue-600">{log.metadata.verdict.status}</span></p>
-                              {log.metadata.verdict.violatedRules?.length > 0 && (
-                                <p className="text-rose-600 font-medium">Violated Rules: {log.metadata.verdict.violatedRules.join(', ')}</p>
-                              )}
-                            </div>
-                          )}
                         </div>
                       </div>
                     );
@@ -218,9 +223,9 @@ export default function CaseAuditDrawer({ caseId, onClose, onRefresh }) {
               </div>
             )}
 
-            {/* Tab 2: Context & Risk Details */}
+            {/* Tab 2: Context & Payment Details */}
             {activeTab === 'summary' && (
-              <div className="p-6 space-y-4 flex-1">
+              <div className="p-6 space-y-6 flex-1">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
                     <p className="text-xs font-medium text-slate-500">Transaction Base Amount</p>
@@ -230,15 +235,85 @@ export default function CaseAuditDrawer({ caseId, onClose, onRefresh }) {
                     <p className="text-xs font-semibold text-blue-700">Revenue at Risk (LTV Weighted)</p>
                     <p className="text-xl font-bold text-blue-900">₹{recoveryCase.revenueAtRisk.toLocaleString()}</p>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
-                    <p className="text-xs font-medium text-slate-500">Failure Category</p>
-                    <p className="text-sm font-bold text-slate-800 font-mono">{recoveryCase.failureCategory || 'INSUFFICIENT_FUNDS'}</p>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
-                    <p className="text-xs font-medium text-slate-500">Retry Attempts Count</p>
-                    <p className="text-sm font-bold text-slate-800">{recoveryCase.retryCount || 0} / 3 Max</p>
-                  </div>
                 </div>
+
+                {/* Real Payment Document Data */}
+                {payment && (
+                  <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3 font-mono text-xs text-slate-800">
+                    <h4 className="font-bold text-slate-900 uppercase tracking-wider font-sans border-b border-slate-100 pb-2">
+                      Gateway Response Metadata
+                    </h4>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Payment ID:</span>
+                      <span className="font-bold">{payment.paymentId}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Method:</span>
+                      <span className="font-semibold text-blue-700">{payment.paymentMethod}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Error Code:</span>
+                      <span className="font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                        {payment.errorCode || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Failure Reason:</span>
+                      <span className="font-medium text-slate-700">{payment.failureReason || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Gateway Txn ID:</span>
+                      <span className="font-semibold text-slate-700">
+                        {payment.gatewayResponse?.rawPayload?.gatewayTxnId || payment.gatewayResponse?.gatewayTxnId || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Gateway Latency:</span>
+                      <span>
+                        {payment.gatewayResponse?.rawPayload?.latencyMs || payment.gatewayResponse?.latencyMs || 0}ms
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 3: AI Diagnosis Details */}
+            {activeTab === 'ai' && (
+              <div className="p-6 space-y-6 flex-1">
+                {aiDecision ? (
+                  <div className="bg-purple-50/60 border border-purple-200 rounded-xl p-5 space-y-4">
+                    <div className="flex items-center justify-between border-b border-purple-200 pb-3">
+                      <div className="flex items-center space-x-2">
+                        <BrainCircuit className="w-5 h-5 text-purple-600" />
+                        <h4 className="font-bold text-purple-950 text-sm">AI Agent Diagnostic Analysis</h4>
+                      </div>
+                      <span className="bg-purple-100 text-purple-800 px-2.5 py-1 rounded-full text-xs font-bold border border-purple-300">
+                        {Math.round((aiDecision.confidenceScore || 0) * 100)}% Confidence
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 text-xs text-purple-900">
+                      <p><span className="font-bold">Failure Classification:</span> <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-purple-200">{aiDecision.classification}</span></p>
+                      <p><span className="font-bold">Recommended Action:</span> <span className="font-bold text-purple-700">{aiDecision.recommendedAction}</span></p>
+                    </div>
+
+                    {aiDecision.rationale && Array.isArray(aiDecision.rationale) && (
+                      <div className="bg-white rounded-lg p-4 border border-purple-200 space-y-2 text-xs">
+                        <p className="font-bold text-slate-800">Diagnostic Rationale & Evidence:</p>
+                        <ul className="list-disc list-inside space-y-1 text-slate-700 font-medium">
+                          {aiDecision.rationale.map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-400 text-xs font-medium">
+                    No AI decision record created yet for this case.
+                  </div>
+                )}
               </div>
             )}
           </div>

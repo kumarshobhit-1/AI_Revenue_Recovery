@@ -170,10 +170,15 @@ export default function SimulatorLab() {
                     onChange={(e) => setFormData({ ...formData, failureReason: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium focus:bg-white focus:outline-none focus:border-blue-500"
                   >
-                    <option value="INSUFFICIENT_FUNDS">INSUFFICIENT_FUNDS (Temporary Liquidity)</option>
-                    <option value="BANK_SERVER_DOWN">BANK_SERVER_DOWN (Gateway Outage)</option>
+                    <option value="INSUFFICIENT_FUNDS">1. Payment Failure (INSUFFICIENT_FUNDS)</option>
+                    <option value="CHECKOUT_ABANDONED_SESSION">2. Checkout Abandonment (CHECKOUT_ABANDONED)</option>
+                    <option value="RECURRING_MANDATE_DECLINED">3. Failed Subscription (MANDATE_DECLINED)</option>
+                    <option value="OVERDUE_INVOICE_30D">4. Overdue Receivable (INVOICE_30D_OVERDUE)</option>
+                    <option value="PAYMENT_DEGRADATION_WARNING">5. Payment Degradation (DEGRADATION_WARNING)</option>
+                    <option value="BANK_SERVER_DOWN">6. Mandate Retry (BANK_SERVER_DOWN)</option>
+                    <option value="PROMISE_TO_PAY_PENDING">7. Promise-to-Pay Tracking (PTP_ACTIVE)</option>
                     <option value="EXPIRED_CARD">EXPIRED_CARD (Authorization Issue)</option>
-                    <option value="STOLEN_CARD">STOLEN_CARD (Unrecoverable Failure)</option>
+                    <option value="STOLEN_CARD">STOLEN_CARD (Unrecoverable Hard Stop)</option>
                   </select>
                 </div>
 

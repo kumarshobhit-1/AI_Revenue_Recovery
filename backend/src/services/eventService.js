@@ -68,7 +68,7 @@ export const eventService = {
       successfulTxnCount: norm.customerSuccessfulTxns || 3,
     });
 
-    // 2b. Ensure Payment entity exists (Phase 1)
+    // 2b. Reuse or create Payment entity (Single payment document guarantee)
     let payment = await dbService.getPaymentById(norm.paymentId);
     if (!payment) {
       payment = await dbService.createPayment({
@@ -79,6 +79,12 @@ export const eventService = {
         currency: norm.currency,
         paymentMethod: norm.paymentMethod || 'CARD',
         status: 'FAILED',
+        errorCode: norm.gatewayErrorCode,
+        failureReason: norm.failureReason,
+        gatewayResponse: norm.rawPayload,
+      });
+    } else {
+      payment = await dbService.updatePaymentStatus(norm.paymentId, 'FAILED', {
         errorCode: norm.gatewayErrorCode,
         failureReason: norm.failureReason,
         gatewayResponse: norm.rawPayload,

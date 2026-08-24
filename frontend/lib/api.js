@@ -17,7 +17,10 @@ async function fetchAPI(endpoint, options = {}) {
     const res = await fetch(url, config);
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.error?.message || `HTTP ${res.status} Error`);
+      const err = new Error(data.error?.message || `HTTP ${res.status} Error`);
+      err.status = res.status;
+      err.data = data;
+      throw err;
     }
     return data;
   } catch (error) {
@@ -27,6 +30,32 @@ async function fetchAPI(endpoint, options = {}) {
 }
 
 export const api = {
+  // Payment Attempt Integration (Phase 2D)
+  async attemptPayment(payload) {
+    try {
+      const data = await fetchAPI('/payments/attempt', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      return {
+        success: true,
+        statusCode: 201,
+        message: data.message,
+        data: data.data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        statusCode: error.status || 500,
+        error: error.data?.error || {
+          code: 'NETWORK_ERROR',
+          message: error.message || 'Failed to connect to RecoverAI Payment Gateway',
+        },
+      };
+    }
+  },
+
   // Financial Metrics
   async getMetrics(merchantId = 'mer_default') {
     return fetchAPI(`/events/metrics?merchantId=${merchantId}`);
