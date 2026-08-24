@@ -5,12 +5,10 @@ import { fastForwardTime } from '../jobs/timeTravel.js';
 import { getPendingMemoryJobs } from '../jobs/queue.js';
 import { RecoveryCase } from '../models/RecoveryCase.js';
 
-
-
 export const handleWebhook = async (req, res, next) => {
   try {
     const result = await eventService.ingestPaymentFailure(req.body, req.idempotencyKey);
-    res.status(201).json({
+    res.status(202).json({
       success: true,
       message: 'Payment failure event ingested successfully',
       data: {
@@ -28,37 +26,54 @@ export const handleWebhook = async (req, res, next) => {
 
 export const handleSimulate = async (req, res, next) => {
   try {
+    const randId = Math.random().toString(36).substr(2, 6);
+    const timeStamp = Date.now();
+
+    const failureReasons = ['INSUFFICIENT_FUNDS', 'BANK_SERVER_DOWN', 'EXPIRED_CARD', 'GATEWAY_TIMEOUT', 'CARD_LIMIT_EXCEEDED'];
+    const gatewayCodes = ['GATEWAY_DECLINE_TEMP', 'HDFC_TIMEOUT_504', 'CARD_AUTH_EXPIRED', 'ICICI_CONN_RESET', 'LIMIT_REACHED'];
+
+    const randomIndex = Math.floor(Math.random() * failureReasons.length);
+
+    const customerName = req.body?.customerName || `Customer_${randId.toUpperCase()}`;
+    const customerEmail = req.body?.customerEmail || `user_${randId}@merchant-store.com`;
+    const customerPhone = req.body?.customerPhone || `+919${Math.floor(100000000 + Math.random() * 900000000)}`;
+    const customerLtv = req.body?.customerLtv || Math.floor(Math.random() * 150000) + 10000;
+    const customerSuccessfulTxns = req.body?.customerSuccessfulTxns || Math.floor(Math.random() * 20) + 1;
+    const amount = req.body?.amount || (Math.floor(Math.random() * 45) + 5) * 1000 + 999;
+    const failureReason = req.body?.failureReason || failureReasons[randomIndex];
+    const gatewayErrorCode = req.body?.gatewayErrorCode || gatewayCodes[randomIndex];
+
     const samplePayload = {
-      paymentId: req.body.paymentId || `pay_sim_${Date.now()}`,
-      merchantId: req.body.merchantId || 'mer_default',
-      customerId: req.body.customerId || `cust_sim_${Date.now()}`,
-      customerName: req.body.customerName || 'shobhit kumar',
-      customerEmail: req.body.customerEmail || 'shobhitkumar1437@gmail.com',
-      customerPhone: req.body.customerPhone || '+917237810232',
-      customerLtv: req.body.customerLtv || 42000,
-      customerSuccessfulTxns: req.body.customerSuccessfulTxns || 12,
-      amount: req.body.amount || 4999,
-      currency: req.body.currency || 'INR',
-      failureReason: req.body.failureReason || 'INSUFFICIENT_FUNDS',
-      gatewayErrorCode: req.body.gatewayErrorCode || 'GATEWAY_DECLINE_TEMP',
-      idempotencyKey: req.body.idempotencyKey || `sim_key_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      paymentId: req.body?.paymentId || `pay_${timeStamp}_${randId}`,
+      merchantId: req.body?.merchantId || 'mer_default',
+      customerId: req.body?.customerId || `cust_${timeStamp}_${randId}`,
+      customerName,
+      customerEmail,
+      customerPhone,
+      customerLtv,
+      customerSuccessfulTxns,
+      amount,
+      currency: req.body?.currency || 'INR',
+      failureReason,
+      gatewayErrorCode,
+      idempotencyKey: req.body?.idempotencyKey || `sim_key_${timeStamp}_${randId}`,
     };
 
     const result = await eventService.ingestPaymentFailure(samplePayload, samplePayload.idempotencyKey);
+
     res.status(201).json({
       success: true,
-      message: 'Synthetic payment failure simulated successfully',
+      message: 'Synthetic payment failure ingested and orchestrated through AI pipeline',
       data: {
         eventId: result.paymentEvent.eventId,
         paymentId: result.paymentEvent.paymentId,
         caseId: result.recoveryCase.caseId,
         state: result.recoveryCase.state,
+        amount: result.recoveryCase.amount,
         revenueAtRisk: result.recoveryCase.revenueAtRisk,
-        customer: {
-          name: result.customer.name,
-          email: result.customer.email,
-          ltv: result.customer.ltv,
-        },
+        customerName,
+        customerEmail,
+        failureReason,
       },
     });
   } catch (error) {
@@ -76,10 +91,24 @@ export const listCases = async (req, res, next) => {
 
     const { cases, total } = await dbService.listRecoveryCases(filter, page, limit);
 
+    const enrichedCases = await Promise.all(
+      cases.map(async (c) => {
+        const rawCase = c._doc || c;
+        const cust = await dbService.findOrCreateCustomer({ customerId: rawCase.customerId, merchantId: rawCase.merchantId });
+        return {
+          ...rawCase,
+          customerName: cust.name || rawCase.customerId,
+          customerEmail: cust.email || '',
+          customerPhone: cust.phone || '',
+          customerLtv: cust.ltv || 0,
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
       data: {
-        cases,
+        cases: enrichedCases,
         pagination: {
           total,
           page,
@@ -105,12 +134,24 @@ export const getCaseDetails = async (req, res, next) => {
       });
     }
 
+    const rawCase = recoveryCase._doc || recoveryCase;
+    const customer = await dbService.findOrCreateCustomer({
+      customerId: rawCase.customerId,
+      merchantId: rawCase.merchantId,
+    });
+
     const auditLogs = await dbService.getAuditLogsByCaseId(caseId);
 
     res.status(200).json({
       success: true,
       data: {
-        recoveryCase,
+        recoveryCase: {
+          ...rawCase,
+          customerName: customer.name || rawCase.customerId,
+          customerEmail: customer.email || '',
+          customerPhone: customer.phone || '',
+          customerLtv: customer.ltv || 0,
+        },
         auditLogs,
       },
     });
@@ -179,5 +220,3 @@ export const listPendingJobs = async (req, res, next) => {
     next(error);
   }
 };
-
-

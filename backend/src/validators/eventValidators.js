@@ -33,7 +33,7 @@ export const resolveOutcomeSchema = z.object({
 
 export const fastForwardSchema = z.object({
   body: z.object({
-    caseId: z.string().optional(),
+    caseId: z.string().nullable().optional(),
     targetMinutes: z.number().positive().optional().default(360),
   }).optional(),
 });

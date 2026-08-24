@@ -1,5 +1,6 @@
 export { Merchant } from './Merchant.js';
 export { Customer } from './Customer.js';
+export { Payment, PAYMENT_METHODS, PAYMENT_STATUSES } from './Payment.js';
 export { PaymentEvent } from './PaymentEvent.js';
 export { RecoveryCase, RECOVERY_CASE_STATES } from './RecoveryCase.js';
 export { AIDecision } from './AIDecision.js';

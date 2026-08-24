@@ -14,15 +14,23 @@ app.use(cors({
 
 app.use(express.json());
 
+import mongoose from 'mongoose';
 import eventRoutes from './routes/eventRoutes.js';
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
+  const dbConnected = mongoose.connection.readyState === 1;
   res.status(200).json({
     status: 'ok',
     service: 'RecoverAI Backend API',
+    database: {
+      connected: dbConnected,
+      name: mongoose.connection.name || 'recoverai',
+      host: mongoose.connection.host || '127.0.0.1',
+      readyState: mongoose.connection.readyState,
+    },
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 

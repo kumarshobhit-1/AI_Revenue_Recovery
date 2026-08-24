@@ -23,6 +23,12 @@ export const outcomeService = {
         await recoveryCase.save();
       }
 
+      // Update payment entity status to RECOVERED (Phase 1)
+      const payment = await dbService.getPaymentById(recoveryCase.paymentId);
+      if (payment) {
+        await dbService.updatePaymentStatus(recoveryCase.paymentId, 'RECOVERED');
+      }
+
       // Update customer stats
       customer.successfulTxnCount = (customer.successfulTxnCount || 0) + 1;
       customer.ltv = (customer.ltv || 0) + recoveredAmount;

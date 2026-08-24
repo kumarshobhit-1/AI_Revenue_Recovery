@@ -68,6 +68,23 @@ export const eventService = {
       successfulTxnCount: norm.customerSuccessfulTxns || 3,
     });
 
+    // 2b. Ensure Payment entity exists (Phase 1)
+    let payment = await dbService.getPaymentById(norm.paymentId);
+    if (!payment) {
+      payment = await dbService.createPayment({
+        paymentId: norm.paymentId,
+        merchantId: norm.merchantId,
+        customerId: norm.customerId,
+        amount: norm.amount,
+        currency: norm.currency,
+        paymentMethod: norm.paymentMethod || 'CARD',
+        status: 'FAILED',
+        errorCode: norm.gatewayErrorCode,
+        failureReason: norm.failureReason,
+        gatewayResponse: norm.rawPayload,
+      });
+    }
+
     // 3. Save Payment Event
     const eventId = `evt_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
     const paymentEvent = await dbService.createPaymentEvent({
