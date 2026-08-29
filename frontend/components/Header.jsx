@@ -41,7 +41,7 @@ export default function Header({ title, subtitle, onRefresh }) {
   };
 
   return (
-    <header className="bg-white border-b border-slate-200 px-8 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-10 shadow-xs">
+    <header className="bg-white/95 backdrop-blur-xs border-b border-slate-200 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-10 shrink-0 shadow-2xs">
       <div>
         <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{title}</h2>
         {subtitle && <p className="text-sm text-slate-500 font-normal mt-0.5">{subtitle}</p>}

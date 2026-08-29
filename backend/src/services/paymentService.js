@@ -6,7 +6,7 @@ import { gatewaySimulator } from '../engine/gatewaySimulator.js';
 
 export const paymentService = {
   // Initiates a realistic payment attempt lifecycle: INITIATED -> Gateway Simulator -> SUCCESS or FAILED.
-  async createPaymentAttempt(payload) {
+  async createPaymentAttempt(payload, options = {}) {
     const paymentId = payload.paymentId || `pay_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
     const merchantId = payload.merchantId || 'mer_default';
     const customerId = payload.customerId || `cust_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
@@ -99,7 +99,8 @@ export const paymentService = {
         gatewayErrorCode: errorCode,
         rawPayload: gatewayResult.gatewayResponse,
       },
-      `idemp_attempt_${paymentId}`
+      `idemp_attempt_${paymentId}`,
+      options
     );
 
     const caseId = ingestion.recoveryCase.caseId;

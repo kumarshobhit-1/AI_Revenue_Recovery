@@ -14,15 +14,24 @@ describe('Phase 13 — Synthetic Evaluation Engine & Benchmarking Suite Tests', 
     await disconnectDB();
   });
 
-  it('1. benchmarkEngine.runBatchBenchmark - should process a batch of synthetic failures', async () => {
+  it('1. benchmarkEngine.runBatchBenchmark - should process a batch of synthetic failures with real accuracy', async () => {
     const result = await benchmarkEngine.runBatchBenchmark(5, 'mer_default');
 
     expect(result).toBeDefined();
     expect(result.batchSize).toBe(5);
     expect(typeof result.totalRevenueAtRisk).toBe('number');
     expect(typeof result.recoveryRatePercentage).toBe('number');
+    expect(typeof result.aiAccuracyPercentage).toBe('number');
+    expect(result.aiAccuracyPercentage).toBeGreaterThan(0);
     expect(Array.isArray(result.casesSummary)).toBe(true);
-    expect(result.casesSummary.length).toBeLessThanOrEqual(5);
+    expect(result.casesSummary.length).toBe(5);
+
+    // Verify non-N/A classification & ground truth alignment
+    result.casesSummary.forEach((item) => {
+      expect(item.aiClassification).not.toBe('N/A');
+      expect(item.expectedClassification).not.toBe('N/A');
+      expect(typeof item.isCorrect).toBe('boolean');
+    });
   });
 
   it('2. POST /api/events/simulator/benchmark - should execute batch benchmark via HTTP API', async () => {
@@ -33,6 +42,7 @@ describe('Phase 13 — Synthetic Evaluation Engine & Benchmarking Suite Tests', 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.batchSize).toBe(5);
+    expect(res.body.data.aiAccuracyPercentage).toBeGreaterThan(0);
     expect(res.body.data.avgLatencyMs).toBeGreaterThanOrEqual(0);
   });
 });

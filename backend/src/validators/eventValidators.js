@@ -53,3 +53,10 @@ export const simulateEventSchema = z.object({
     idempotencyKey: z.string().optional(),
   }).optional(),
 });
+
+export const benchmarkSchema = z.object({
+  body: z.object({
+    batchSize: z.number().int().min(1).max(100).optional().default(20),
+    merchantId: z.string().optional().default('mer_default'),
+  }).optional(),
+});

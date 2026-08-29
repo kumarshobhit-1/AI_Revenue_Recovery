@@ -46,8 +46,9 @@ export const normalizeEventPayload = (payload) => {
 export const eventService = {
   // Main entry point for ingesting failed payment events.
   
-  async ingestPaymentFailure(rawPayload, idempotencyKey) {
+  async ingestPaymentFailure(rawPayload, idempotencyKey, options = {}) {
     const norm = normalizeEventPayload(rawPayload);
+    const isBenchmark = Boolean(options?.isBenchmark || rawPayload?.isBenchmark);
 
     // 1. Ensure Merchant exists
     const merchant = await dbService.findOrCreateMerchant({
@@ -149,7 +150,7 @@ export const eventService = {
     // 7. If eligible, trigger AI Failure Diagnosis (ELIGIBLE -> ACTION_PLANNED)
     let diagnosisResult = null;
     if (riskResult.isEligible) {
-      diagnosisResult = await diagnosisService.diagnoseCase(caseId);
+      diagnosisResult = await diagnosisService.diagnoseCase(caseId, { ...options, isBenchmark });
     }
 
     const finalCase = await dbService.getRecoveryCaseById(caseId);

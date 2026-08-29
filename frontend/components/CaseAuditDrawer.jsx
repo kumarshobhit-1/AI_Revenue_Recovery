@@ -85,7 +85,7 @@ export default function CaseAuditDrawer({ caseId, onClose, onRefresh }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden flex justify-end bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col justify-between border-l border-slate-200 select-none">
+      <div className="w-full sm:max-w-xl md:max-w-2xl bg-white h-full shadow-2xl flex flex-col justify-between border-l border-slate-200 select-none">
         {/* Drawer Header */}
         <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
           <div>
@@ -271,6 +271,12 @@ export default function CaseAuditDrawer({ caseId, onClose, onRefresh }) {
                       <span className="text-slate-500">Gateway Latency:</span>
                       <span>
                         {payment.gatewayResponse?.rawPayload?.latencyMs || payment.gatewayResponse?.latencyMs || 0}ms
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-t border-slate-100 pt-2 font-sans">
+                      <span className="text-slate-500 font-medium">Retry Attempt Count:</span>
+                      <span className="font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                        #{recoveryCase.retryCount || 0} Attempts
                       </span>
                     </div>
                   </div>

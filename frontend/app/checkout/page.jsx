@@ -146,7 +146,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans select-none">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans select-none overflow-x-hidden">
       {/* Merchant Top Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">

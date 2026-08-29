@@ -8,6 +8,7 @@ import {
   resolveOutcomeSchema,
   fastForwardSchema,
   simulateEventSchema,
+  benchmarkSchema,
 } from '../validators/eventValidators.js';
 import {
   handleWebhook,
@@ -30,7 +31,7 @@ router.post('/webhook', checkIdempotency, handleWebhook);
 router.post('/simulate', validateRequest(simulateEventSchema), checkIdempotency, handleSimulate);
 router.post('/simulator/fast-forward', validateRequest(fastForwardSchema), handleFastForward);
 router.get('/simulator/jobs', listPendingJobs);
-router.post('/simulator/benchmark', handleBenchmark);
+router.post('/simulator/benchmark', validateRequest(benchmarkSchema), handleBenchmark);
 
 // Financial Metrics Endpoint
 router.get('/metrics', validateRequest(getMetricsSchema), getMetrics);

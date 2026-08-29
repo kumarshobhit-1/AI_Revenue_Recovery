@@ -33,7 +33,11 @@ DO NOT include markdown block wrappers or extra conversational text outside the 
 
 export const aiProvider = {
   // Main entry point for AI Failure Diagnosis.
-  async diagnose(context) {
+  async diagnose(context, options = {}) {
+    if (options?.isBenchmark || context?.isBenchmark) {
+      return this.diagnoseMock(context);
+    }
+
     const provider = (process.env.AI_PROVIDER || 'mock').toLowerCase();
 
     try {

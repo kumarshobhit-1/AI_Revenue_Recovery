@@ -4,7 +4,7 @@ import { validateTransition } from '../engine/stateMachine.js';
 
 export const diagnosisService = {
   // Diagnoses an ELIGIBLE recovery case using the AI Diagnostic Agent. Advances state from ELIGIBLE -> ACTION_PLANNED and stores AIDecision.
-  async diagnoseCase(caseId) {
+  async diagnoseCase(caseId, options = {}) {
     const recoveryCase = await dbService.getRecoveryCaseById(caseId);
     if (!recoveryCase) {
       throw new Error(`Recovery Case ${caseId} not found for AI diagnosis`);
@@ -34,8 +34,12 @@ export const diagnosisService = {
       },
     };
 
+    if (options.isBenchmark) {
+      context.isBenchmark = true;
+    }
+
     // 1. Invoke AI Diagnostic Agent
-    const aiOutput = await aiProvider.diagnose(context);
+    const aiOutput = await aiProvider.diagnose(context, options);
 
     // 2. Persist AIDecision document
     const decisionId = `dec_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;

@@ -1,33 +1,39 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import eventRoutes from './routes/eventRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import { apiRateLimiter } from './middleware/rateLimiter.js';
+import { sanitizeMiddleware } from './middleware/sanitize.js';
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
+// Allowed Origins for CORS Security Hardening
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   ...(process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : []),
 ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS policy blocked for origin: ${origin}`));
-    }
-  },
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS policy blocked for origin: ${origin}`));
+      }
+    },
+    credentials: true,
+  })
+);
 
-app.use(express.json());
-
-import mongoose from 'mongoose';
-import eventRoutes from './routes/eventRoutes.js';
+app.use(express.json({ limit: '1mb' }));
+app.use(sanitizeMiddleware);
+app.use('/api/', apiRateLimiter);
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
@@ -46,12 +52,9 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-import paymentRoutes from './routes/paymentRoutes.js';
-
 // API Routes
 app.use('/api/events', eventRoutes);
 app.use('/api/payments', paymentRoutes);
-
 
 // 404 Route Handler
 app.use((req, res) => {
@@ -59,20 +62,26 @@ app.use((req, res) => {
     success: false,
     error: {
       code: 'NOT_FOUND',
-      message: `Route ${req.method} ${req.url} not found`
-    }
+      message: `Route ${req.method} ${req.url} not found`,
+    },
   });
 });
 
-// Global Error Handling Middleware
+// Global Error Handling Middleware (Production-hardened)
 app.use((err, req, res, next) => {
-  console.error('[Unhandled Error]:', err);
+  if (process.env.NODE_ENV !== 'test') {
+    console.error('[Unhandled Error]:', err.message || err);
+  }
+
+  const isProd = process.env.NODE_ENV === 'production';
+
   res.status(err.status || 500).json({
     success: false,
     error: {
       code: err.code || 'INTERNAL_SERVER_ERROR',
-      message: err.message || 'An unexpected error occurred'
-    }
+      message: err.message || 'An unexpected error occurred',
+      ...(isProd ? {} : { stack: err.stack }),
+    },
   });
 });
 

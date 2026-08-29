@@ -27,3 +27,4 @@ yarn-error.log*
 Thumbs.db
 backend/node_modules/
 frontend/node_modules/
+DEMO_SCRIPT.md

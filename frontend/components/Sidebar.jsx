@@ -20,19 +20,14 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 min-h-screen flex flex-col justify-between p-4 sticky top-0 h-screen select-none">
+    <aside className="w-64 h-screen shrink-0 bg-white border-r border-slate-200 flex flex-col justify-between p-4 sticky top-0 z-20 select-none overflow-y-auto">
       <div className="space-y-6">
         {/* Brand Header */}
-        <div className="flex items-center space-x-3 px-2 py-1">
-          <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm font-bold text-lg">
-            <ShieldCheck className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="font-bold text-slate-900 text-lg leading-tight tracking-tight">
-              Recover<span className="text-blue-600">AI</span>
-            </h1>
-            <p className="text-xs text-slate-500 font-medium">Revenue Recovery Agent</p>
-          </div>
+        <div className="px-2 py-1">
+          <h1 className="font-bold text-slate-900 text-xl leading-tight tracking-tight">
+            Recover<span className="text-blue-600">AI</span>
+          </h1>
+          <p className="text-xs text-slate-500 font-medium">Revenue Recovery Agent</p>
         </div>
 
         {/* Navigation Items */}
@@ -44,9 +39,9 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
+                    ? 'bg-blue-50 text-blue-700 border border-blue-100 shadow-2xs'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
@@ -60,9 +55,9 @@ export default function Sidebar() {
 
       {/* Footer Merchant Profile */}
       <div className="border-t border-slate-200 pt-4 space-y-3">
-        <div className="bg-slate-50 rounded-lg p-3 border border-slate-200 flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs">
-            <Building2 className="w-4 h-4 text-slate-500" />
+        <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-lg bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
+            <Building2 className="w-4 h-4 text-slate-600" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold text-slate-900 truncate">Acme Store</p>
@@ -71,11 +66,11 @@ export default function Sidebar() {
         </div>
 
         <div className="flex items-center justify-between text-[11px] text-slate-500 px-1 font-medium">
-          <span className="flex items-center space-x-1">
+          <span className="flex items-center space-x-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-            <span>Agent Active</span>
+            <span className="font-semibold text-slate-700">Agent Active</span>
           </span>
-          <span>v1.0.0</span>
+          <span className="font-mono text-slate-400">v1.0.0</span>
         </div>
       </div>
     </aside>
