@@ -5,9 +5,7 @@ import { validateTransition } from '../engine/stateMachine.js';
 
 
 
-// Normalizes inbound payment failure payloads from Razorpay or generic gateways.
 export const normalizeEventPayload = (payload) => {
-  // Support Razorpay Webhook format if present
   if (payload.event === 'payment.failed' && payload.payload?.payment?.entity) {
     const p = payload.payload.payment.entity;
     return {
@@ -15,8 +13,8 @@ export const normalizeEventPayload = (payload) => {
       merchantId: payload.account_id || 'mer_default',
       customerId: p.customer_id || `cust_${p.contact || p.email || 'anon'}`,
       customerName: p.notes?.customer_name || 'Valued Customer',
-      customerEmail: p.email || 'customer@example.com',
-      customerPhone: p.contact || '+919999999999',
+      customerEmail: p.email || 'shobhitkumar1437@example.com',
+      customerPhone: p.contact || '+917237810232',
       amount: Math.round(p.amount / 100), // Razorpay uses paise
       currency: p.currency || 'INR',
       failureReason: p.error_code || p.error_reason || 'PAYMENT_FAILED',
@@ -25,7 +23,7 @@ export const normalizeEventPayload = (payload) => {
     };
   }
 
-  // Generic / Synthetic Event Payload format
+
   return {
     paymentId: payload.paymentId || payload.payment_id || `pay_${Date.now()}`,
     merchantId: payload.merchantId || payload.merchant_id || 'mer_default',
@@ -44,13 +42,11 @@ export const normalizeEventPayload = (payload) => {
 };
 
 export const eventService = {
-  // Main entry point for ingesting failed payment events.
   
   async ingestPaymentFailure(rawPayload, idempotencyKey, options = {}) {
     const norm = normalizeEventPayload(rawPayload);
     const isBenchmark = Boolean(options?.isBenchmark || rawPayload?.isBenchmark);
 
-    // 1. Ensure Merchant exists
     const merchant = await dbService.findOrCreateMerchant({
       merchantId: norm.merchantId,
       name: 'Default Merchant Store',
@@ -58,7 +54,6 @@ export const eventService = {
       apiKey: 'key_dev_default',
     });
 
-    // 2. Ensure Customer exists
     const customer = await dbService.findOrCreateCustomer({
       customerId: norm.customerId,
       merchantId: norm.merchantId,
@@ -69,7 +64,6 @@ export const eventService = {
       successfulTxnCount: norm.customerSuccessfulTxns || 3,
     });
 
-    // 2b. Reuse or create Payment entity (Single payment document guarantee)
     let payment = await dbService.getPaymentById(norm.paymentId);
     if (!payment) {
       payment = await dbService.createPayment({
@@ -92,7 +86,6 @@ export const eventService = {
       });
     }
 
-    // 3. Save Payment Event
     const eventId = `evt_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
     const paymentEvent = await dbService.createPaymentEvent({
       eventId,
@@ -107,7 +100,6 @@ export const eventService = {
       idempotencyKey,
     });
 
-    // 4. Initialize Recovery Case in DETECTED state
     const caseId = `case_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
     const recoveryCase = await dbService.createRecoveryCase({
       caseId,
@@ -123,7 +115,6 @@ export const eventService = {
       failureCategory: norm.failureReason,
     });
 
-    // Initial audit log entry
     await dbService.appendAuditLog({
       auditId: `aud_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
       caseId,
@@ -135,7 +126,6 @@ export const eventService = {
       metadata: { paymentId: norm.paymentId, idempotencyKey },
     });
 
-    // 5. Advance State Machine: DETECTED -> ANALYZING
     validateTransition('DETECTED', 'ANALYZING', caseId);
     await dbService.updateCaseState(
       caseId,
@@ -144,10 +134,8 @@ export const eventService = {
       'SYSTEM'
     );
 
-    // 6. Run Revenue-at-Risk & Recovery Eligibility Engine (ANALYZING -> ELIGIBLE)
     const riskResult = await riskService.evaluateCaseRisk(caseId);
 
-    // 7. If eligible, trigger AI Failure Diagnosis (ELIGIBLE -> ACTION_PLANNED)
     let diagnosisResult = null;
     if (riskResult.isEligible) {
       diagnosisResult = await diagnosisService.diagnoseCase(caseId, { ...options, isBenchmark });
